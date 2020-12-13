@@ -26,7 +26,7 @@ session = Session()
 
 
 def menu():
-    choice = int(input("1) Today's tasks\n2) Week's tasks\n3) All tasks\n4) Add task\n0) Exit\n"))
+    choice = int(input("1) Today's tasks\n2) Week's tasks\n3) All tasks\n4) Missed tasks\n5) Add task\n6) Delete task\n0) Exit\n"))
     print("")
     today = datetime.today()
     day = today.day
@@ -65,10 +65,32 @@ def menu():
                 print("{}. {}. {}".format(i+1, rows[i], rows[i].deadline.strftime('%-d %b')))
             print("")
     if choice == 4:
+        rows = session.query(Table).filter(Table.deadline < today.date()).order_by(Table.deadline).all()
+        print("Missed tasks:")
+        if len(rows) == 0:
+            print("Nothing is missed!")
+        else:
+            for i in range(len(rows)):
+                print("{}. {}. {}".format(i+1, rows[i], rows[i].deadline.strftime('%-d %b')))
+        print("")
+    if choice == 5:
         new_row = Table(task=input("Enter task"), deadline = datetime.strptime(input("Enter deadline"), '%Y-%m-%d'))
         session.add(new_row)
         session.commit()
         print("The task has been added!")
+    if choice == 6:
+        rows = session.query(Table).order_by(Table.deadline).all()
+        if len(rows) == 0:
+            print("Nothing to delete")
+        else:
+            print("Choose the number of the task you want to delete:")
+            for i in range(len(rows)):
+                print("{}. {}. {}".format(i+1, rows[i], rows[i].deadline.strftime('%-d %b')))
+            task_to_delete = int(input())
+            specific_row = rows[task_to_delete-1]
+            session.delete(specific_row)
+            session.commit()
+            print("The task has been deleted!")
     return True
 
 while menu():
